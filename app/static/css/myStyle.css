@@ -3,9 +3,11 @@ body {
   font-size:        medium;
   margin-top:       5%;
   margin-bottom:    5%;
+  /*
   margin-left:      10%;
   margin-right:     10%;
-  padding:          10px 10px 10px 10px;
+  */
+  /*padding:          10px 10px 10px 10px;*/
 }
 
 .phraseInput {
@@ -14,4 +16,17 @@ body {
 
 .blueKeyword {
 	color: #0069d9;
+}
+
+.grid {
+  display: flex;
+  justify-content: start;
+}
+
+.grid .fig_box {
+  width: 30%;
+}
+
+.grid .fig_line {
+  width: 70%;
 }

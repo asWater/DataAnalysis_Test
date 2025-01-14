@@ -13,7 +13,7 @@
             "console": "integratedTerminal",
             "cwd": "${fileDirname}",
             "args": [
-                "20250106_smon.txt"
+                "smon.tsv"
             ]
         }
     ]

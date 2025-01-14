@@ -2,6 +2,30 @@
 
 {% block body %}
 
-<img src="data:image/png;base64,{{ fig_image }}">
+<h1>SMON Analysis</h1>
+<div class="grid">
+    <div class="fig_box">{{ fig_1_1 | safe }}</div>
+    <div class="fig_line">{{ fig_1_2 | safe }}</div>
+</div>
+<div class="grid">
+    <div class="fig_box">{{ fig_2_1 | safe }}</div>
+    <div class="fig_line">{{ fig_2_2 | safe }}</div>
+</div>
+<div>{{ fig_3 | safe }}</div>
+<div>{{ fig_4 | safe }}</div>
+<div>{{ fig_5 | safe }}</div>
+<div>{{ fig_6 | safe }}</div>
+<div>{{ fig_7 | safe }}</div>
+<div>{{ fig_8 | safe }}</div>
+<div>{{ fig_9 | safe }}</div>
+<div>{{ fig_10 | safe }}</div>
+<div>{{ fig_11 | safe }}</div>
+<div>{{ fig_12 | safe }}</div>
+<div>{{ fig_13 | safe }}</div>
+<div>{{ fig_14 | safe }}</div>
+<div>{{ fig_15 | safe }}</div>
+<div>{{ fig_16 | safe }}</div>
+
+<p>End of analysis</p>
 
 {% endblock %}
