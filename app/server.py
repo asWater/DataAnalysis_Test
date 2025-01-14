@@ -10,12 +10,16 @@ from modules.DataAnalysis_Plotly import smonAnalysis
 # 自身の名称を app という名前でインスタンス化する
 app = Flask( __name__ )
 
+DROP_MAX_FILE_SIZE = 30
+
 # https://flask-dropzone.readthedocs.io/en/latest/configuration.html
 app.config.update(
 	DROPZONE_ALLOWED_FILE_CUSTOM = True,
 	DROPZONE_ALLOWED_FILE_TYPE = '.tsv, .txt',
 	DROPZONE_REDIRECT_VIEW = 'results',
-	DROPZONE_MAX_FILE_SIZE = 30, # MB
+	DROPZONE_MAX_FILE_SIZE = DROP_MAX_FILE_SIZE, # MB
+	DROPZONE_MAX_FILES = 1,
+	DROPZONE_DEFAULT_MESSAGE = f"Drop an output file of /SDF/SMON (Local file > Text with Tab)<br>Max File Size = {DROP_MAX_FILE_SIZE} MB.",
 )
 
 dropzone = Dropzone(app)

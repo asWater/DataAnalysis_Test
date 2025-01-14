@@ -2,6 +2,7 @@ import pandas as pd
 
 import sys
 import os.path
+import time
 
 import plotly.io as pio
 import plotly.express as px
@@ -12,6 +13,9 @@ import webbrowser
 
 global dataFrame
 global isNewVersion
+
+#Constants
+NEW_VERSION_COLNUM = 35
 
 #HTML_TMP = '<img src="data:image/png;base64,{image_bin}">'
 
@@ -27,15 +31,35 @@ class SmonDataAnalysis():
         # > Total columns number: 31
         # > Data Starts: Row 4
         #df = pd.read_csv(tsvfile, skiprows=1, header=0, usecols=range(1,34), skip_blank_lines=True, sep='\t')
-        self.df = pd.read_csv(tsvfile, skiprows=1, header=0, usecols=lambda c: c is not None, skip_blank_lines=True, sep='\t')
+        startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        self.df = pd.read_csv(
+                tsvfile, 
+                skiprows=1, 
+                header=0, 
+                usecols=lambda c: c is not None, 
+                skip_blank_lines=True, 
+                sep='\t',
+                parse_dates={'DateTime': ['Date', 'Time']},
+                keep_date_col=True,
+            )
+        endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        print(f">>> [Elapsed Time (sec) for reading a tsv file] { endTime - startTime }")
 
         #------------------------------------
         # Pre processing for the data frame
         #------------------------------------
+        startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # Eliminating preceding and scceeding spaces from clumn names
         self.df.rename( columns=lambda c: c.strip(), inplace=True )
         # Changing the duplicated column name (Last column name. i.e. "Time")
         self.df.columns = [*self.df.columns[:-1], 'Time2']
+
+        # Converting Datetime (datetime64) to String.
+        # Otherwise the process of rendering graph (to_html) takes very long time (aprox 10x times)
+        self.df['DateTime'] = self.df['DateTime'].dt.strftime('%Y/%m/%d %H:%M:%S')
+
+        endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        print(f">>> [Elapsed Time (sec) for pre-proc of a tsv file] { endTime - startTime }")
 
         global dataFrame
         dataFrame = self.df
@@ -51,7 +75,7 @@ class SmonDataAnalysis():
         # (Only checking the column number)
         row, col = self.df.shape
         global isNewVersion
-        if col == 34:
+        if col == NEW_VERSION_COLNUM:
             isNewVersion = True
         else:
             isNewVersion = False
@@ -74,6 +98,7 @@ class SmonDataAnalysis():
     
     def create_line_fig( self, options ):
         fig = px.line(self.df, x=options['x_col'], y=options['y_col'], color=options['color'], render_mode="svg")
+
         fig.update_layout(
             title=dict(
                 text=options['desc'],
@@ -85,7 +110,8 @@ class SmonDataAnalysis():
             yaxis_range=options['y_range'],
             yaxis_categoryorder=options['y_categoryOrder'],
             xaxis_categoryorder='array',
-            xaxis_categoryarray=self.df['Time'],
+            xaxis_categoryarray=self.df[options['x_col']],
+            xaxis_dtick=350,
         )
 
         return fig
@@ -102,13 +128,14 @@ def smonAnalysis( tsvfile, isMain ):
 
     graphOptions = {}
 
+    startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # Creating graphs
     # fig1
     fig1 = ana.create_box_fig( 'AS Instance', 'CPU Usr' )
 
     # fig2
     graphOptions = {
-        "x_col": 'Time',
+        "x_col": "DateTime",
         "y_col": "CPU Usr",
         "color": "AS Instance",
         "y_range": [0, 100],
@@ -200,8 +227,13 @@ def smonAnalysis( tsvfile, isMain ):
     graphOptions['desc'] = "Number of logins"
     fig18 = ana.create_line_fig( graphOptions ) 
 
+    endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    print(f">>> [Elapsed Time (sec) for creating 18 graphs] { endTime - startTime }")
+
     # Setting graph data to a dictionary
     figDict = {}
+
+    startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     figDict['fig1'] = fig1.to_html( full_html=False )
     figDict['fig2'] = fig2.to_html( full_html=False )
     figDict['fig3'] = fig3.to_html( full_html=False )
@@ -223,6 +255,8 @@ def smonAnalysis( tsvfile, isMain ):
     figDict['fig16'] = fig16.to_html( full_html=False )
     figDict['fig17'] = fig17.to_html( full_html=False )
     figDict['fig18'] = fig18.to_html( full_html=False )
+    endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    print(f">>> [Elapsed Time (sec) for rendering 18 graphs (to_html)] { endTime - startTime }")
 
     if isMain is True:
         output_html_path=r"test_result_graphs.html"
