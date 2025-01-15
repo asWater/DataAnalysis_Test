@@ -8,29 +8,112 @@
 
 <body>
     <h1>Plotly graphs</h1>
-    <div class="grid">
-        <div class="fig_box">{{ fig_1_1 }}</div>
-        <div class="fig_line">{{ fig_1_2 }}</div>
-    </div>
-    <div class="grid">
-        <div class="fig_box">{{ fig_2_1 }}</div>
-        <div class="fig_line">{{ fig_2_2 }}</div>
-    </div>
-    <div>{{ fig_3 }}</div>
-    <div>{{ fig_4 }}</div>
-    <div>{{ fig_5 }}</div>
-    <div>{{ fig_6 }}</div>
-    <div>{{ fig_7 }}</div>
-    <div>{{ fig_8 }}</div>
-    <div>{{ fig_9 }}</div>
-    <div>{{ fig_10 }}</div>
-    <div>{{ fig_11 }}</div>
-    <div>{{ fig_12 }}</div>
-    <div>{{ fig_13 }}</div>
-    <div>{{ fig_14 }}</div>
-    <div>{{ fig_15 }}</div>
-    <div>{{ fig_16 }}</div>
+    <ul id="graphList">
+        <li>
+            <details open>
+                <summary>{{ sec_1_desc }}</summary>
+                <div class="grid">
+                    <div class="fig_box">{{ fig_1_1 | safe }}</div>
+                    <div class="fig_line">{{ fig_1_2 | safe }}</div>
+                </div>
+                <div class="grid">
+                    <div class="fig_box">{{ fig_2_1 | safe }}</div>
+                    <div class="fig_line">{{ fig_2_2 | safe }}</div>
+                </div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_2_desc }}</summary>
+                <div>{{ fig_3 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_3_desc }}</summary>
+                <div>{{ fig_4 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_4_desc }}</summary>
+                <div>{{ fig_5 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_5_desc }}</summary>
+                <div>{{ fig_6 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_6_desc }}</summary>
+                <div>{{ fig_7 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_7_desc }}</summary>
+                <div>{{ fig_8 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_8_desc }}</summary>
+                <div>{{ fig_9 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_9_desc }}</summary>
+                <div>{{ fig_10 | safe }}</div>
+            </details>
+        </li>
+        <li>        
+            <details open>
+                <summary>{{ sec_10_desc }}</summary>
+                <div>{{ fig_11 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_11_desc }}</summary>
+                <div>{{ fig_12 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_12_desc }}</summary>
+                <div>{{ fig_13 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_13_desc }}</summary>
+                <div>{{ fig_14 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_14_desc }}</summary>
+                <div>{{ fig_15 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_15_desc }}</summary>
+                <div>{{ fig_16 | safe }}</div>
+            </details>
+        </li>
+    </ul>
 
-    <p>End of analysis</p>
+    <br>
+    <h1>End of analysis</h1>
+
+    <!-- The following script must be inside of BODY besides the last part (here), otherwise the following error is issued -->
+    <!-- ERROR: Uncaught TypeError: Cannot read properties of null (reading 'getElementsByTagName') -->
+    <!-- In FLASK, javascript file must be inside "static" -->
+    <script src="../static/js/DragHandler.js"></script>
 </body>
 </html>

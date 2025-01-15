@@ -80,11 +80,11 @@ class SmonDataAnalysis():
         else:
             isNewVersion = False
     
-    def create_box_fig( self, x_col, y_col ):
+    def create_box_fig( self, x_col, y_col, desc ):
         fig = px.box(self.df, x=x_col, y=y_col)
         fig.update_layout(
             title=dict(
-                text=f"{x_col} / {y_col}",
+                text=desc,
                 font=dict(
                     size=15,
                     color="grey",
@@ -101,7 +101,7 @@ class SmonDataAnalysis():
 
         fig.update_layout(
             title=dict(
-                text=options['desc'],
+                #text=options['desc'],
                 font=dict(
                     size=15,
                     color="grey",
@@ -127,11 +127,18 @@ def smonAnalysis( tsvfile, isMain ):
     ana = SmonDataAnalysis( tsvfile )
 
     graphOptions = {}
+    # Setting graph data to a dictionary
+    figDict = {}
+
+    # Common texts
+    COL_NAME_PAGINGMEM = "Paging Mem"
 
     startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # Creating graphs
     # fig1
-    fig1 = ana.create_box_fig( 'AS Instance', 'CPU Usr' )
+    figDict['section_1_desc'] = "CPU Utilization"
+    fig = ana.create_box_fig( 'AS Instance', 'CPU Usr', 'CPU Utilization by Users' )
+    figDict['fig1'] = fig.to_html( full_html=False )
 
     # fig2
     graphOptions = {
@@ -142,122 +149,101 @@ def smonAnalysis( tsvfile, isMain ):
         "y_categoryOrder": "category ascending",
         "desc": "CPU Utilization (User)" 
     } 
-    fig2 = ana.create_line_fig( graphOptions )
+    fig = ana.create_line_fig( graphOptions )
+    figDict['fig2'] = fig.to_html( full_html=False )
 
     # fig3
-    fig3 = ana.create_box_fig( 'AS Instance', 'CPU Sys' )
+    fig = ana.create_box_fig( 'AS Instance', 'CPU Sys', 'CPU Utilization by System' )
+    figDict['fig3'] = fig.to_html( full_html=False )
     
     # fig4
     graphOptions['y_col'] = "CPU Sys"
     graphOptions['desc'] = "CPU Utilization (System)"
-    fig4 = ana.create_line_fig( graphOptions )
+    fig = ana.create_line_fig( graphOptions )
+    figDict['fig4'] = fig.to_html( full_html=False )
 
-    # fig5
-    graphOptions['y_col'] = "Act. WPs"
+    smonDataInfo = {
+        "smonCols": [
+            {
+                "col_name": "Act. WPs",
+                "col_desc": "Number of Active Work Processes"
+            },
+            {
+                "col_name": "Dia.WPs",
+                "col_desc": "Number of Active Dialog WPs"
+            },
+            {
+                "col_name": "RFC Normal",
+                "col_desc": "Free DIA WPs for RFCs with normal prio"
+            },
+            {
+                "col_name": "RFC Low",
+                "col_desc": "Free DIA WPs for RFC with low priority"
+            },
+            {
+                "col_name": "FreeMem",
+                "col_desc": "Free Memory (MB)"
+            },
+            {
+                "col_name": "EM alloc.",
+                "col_desc": "Allocated Extended Menmory in MB"
+            },
+            {
+                "col_name": "EM attach.",
+                "col_desc": "Attached Extended Memory in MB"
+            },
+            {
+                "col_name": "Heap Memor",
+                "col_desc": "Heap Memory in MB"
+            },
+            {
+                "col_name": COL_NAME_PAGINGMEM,
+                "col_desc": "Paging Memory (KB)"
+            },
+            {
+                "col_name": "Pri.",
+                "col_desc": "Private Modes"
+            },
+            {
+                "col_name": "Dia.",
+                "col_desc": "Dialog Queue Length"
+            },
+            {
+                "col_name": "Upd.",
+                "col_desc": "Update Queue Length"
+            },
+            {
+                "col_name": "Enq.",
+                "col_desc": "Enqueue Queue Length"
+            },
+            {
+                "col_name": "Logins",
+                "col_desc": "Number of logins"
+            },
+        ]
+    }
+
     graphOptions['y_range'] = None
-    graphOptions['desc'] = "Number of Active Work Processes"
-    fig5 = ana.create_line_fig( graphOptions )
 
-    # fig6
-    graphOptions['y_col'] = "Dia.WPs"
-    graphOptions['desc'] = "Number of Active Dialog WPs"
-    fig6 = ana.create_line_fig( graphOptions )  
-
-    # fig7
-    graphOptions['y_col'] = "RFC Normal"
-    graphOptions['desc'] = "Free DIA WPs for RFCs with normal prio"
-    fig7 = ana.create_line_fig( graphOptions ) 
-
-    # fig8
-    graphOptions['y_col'] = "RFC Low"
-    graphOptions['desc'] = "Free DIA WPs for RFC with low priority"
-    fig8 = ana.create_line_fig( graphOptions )  
-
-    # fig9
-    graphOptions['y_col'] = "FreeMem"
-    graphOptions['desc'] = "Free Memory (MB)"
-    fig9 = ana.create_line_fig( graphOptions ) 
-
-    # fig10
-    graphOptions['y_col'] = "EM alloc."
-    graphOptions['desc'] = "Allocated Extended Menmory in MB"
-    fig10 = ana.create_line_fig( graphOptions ) 
-
-    # fig11
-    graphOptions['y_col'] = "EM attach."
-    graphOptions['desc'] = "Attached Extended Memory in MB"
-    fig11 = ana.create_line_fig( graphOptions )
-
-    # fig12
-    graphOptions['y_col'] = "Heap Memor"
-    graphOptions['desc'] = "Heap Memory in MB"
-    fig12 = ana.create_line_fig( graphOptions ) 
-
-    # fig13
-    # !!! Column "Pagin Mem" is only existing on the new version (at least since ST-PI 740 SP25)
-    if isNewVersion: # New version has 34 columns and the column "Paging Mem" is existing as far as I know.
-        graphOptions['y_col'] = "Paging Mem"
-        graphOptions['desc'] = "Paging Memory (KB)"
-        fig13 = ana.create_line_fig( graphOptions )
-    else:
-        fig13 = None
-
-    # fig14
-    graphOptions['y_col'] = "Pri."
-    graphOptions['desc'] = "Private Modes"
-    fig14 = ana.create_line_fig( graphOptions ) 
-
-    # fig15
-    graphOptions['y_col'] = "Dia."
-    graphOptions['desc'] = "Dialog Queue Length"
-    fig15 = ana.create_line_fig( graphOptions ) 
-
-    # fig16
-    graphOptions['y_col'] = "Upd."
-    graphOptions['desc'] = "Update Queue Length"
-    fig16 = ana.create_line_fig( graphOptions ) 
-
-    # fig17
-    graphOptions['y_col'] = "Enq."
-    graphOptions['desc'] = "Enqueue Queue Length"
-    fig17 = ana.create_line_fig( graphOptions ) 
-
-    # fig18
-    graphOptions['y_col'] = "Logins"
-    graphOptions['desc'] = "Number of logins"
-    fig18 = ana.create_line_fig( graphOptions ) 
+    # Creating other graphs
+    for i, key in enumerate(smonDataInfo['smonCols']):
+        # New version has 34 columns and the column "Paging Mem" is existing as far as I know.  
+        # Column "Pagin Mem" is only existing in the new version (at least since ST-PI 740 SP25)  
+        if not isNewVersion and key['col_name'] == COL_NAME_PAGINGMEM:
+            figDict[f'fig{i+5}'] = None
+            figDict[f'section_{i+2}_desc'] = None
+        else:
+            graphOptions['y_col'] = key['col_name']
+            graphOptions['desc'] = key['col_desc']
+            fig = ana.create_line_fig( graphOptions )
+            figDict[f'fig{i+5}'] = fig.to_html( full_html=False )
+            figDict[f'section_{i+2}_desc'] = key['col_desc']
+                
 
     endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    print(f">>> [Elapsed Time (sec) for creating 18 graphs] { endTime - startTime }")
+    print(f">>> [Elapsed Time (sec) for creating/rendering graphs] { endTime - startTime }")
 
-    # Setting graph data to a dictionary
-    figDict = {}
-
-    startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    figDict['fig1'] = fig1.to_html( full_html=False )
-    figDict['fig2'] = fig2.to_html( full_html=False )
-    figDict['fig3'] = fig3.to_html( full_html=False )
-    figDict['fig4'] = fig4.to_html( full_html=False )
-    figDict['fig5'] = fig5.to_html( full_html=False )
-    figDict['fig6'] = fig6.to_html( full_html=False )
-    figDict['fig7'] = fig7.to_html( full_html=False )
-    figDict['fig8'] = fig8.to_html( full_html=False )
-    figDict['fig9'] = fig9.to_html( full_html=False )
-    figDict['fig10'] = fig10.to_html( full_html=False )
-    figDict['fig11'] = fig11.to_html( full_html=False )
-    figDict['fig12'] = fig12.to_html( full_html=False )
-    if isNewVersion:
-        figDict['fig13'] = fig13.to_html( full_html=False )
-    else:
-        figDict['fig13'] = None
-    figDict['fig14'] = fig14.to_html( full_html=False )
-    figDict['fig15'] = fig15.to_html( full_html=False )
-    figDict['fig16'] = fig16.to_html( full_html=False )
-    figDict['fig17'] = fig17.to_html( full_html=False )
-    figDict['fig18'] = fig18.to_html( full_html=False )
-    endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    print(f">>> [Elapsed Time (sec) for rendering 18 graphs (to_html)] { endTime - startTime }")
-
+    
     if isMain is True:
         output_html_path=r"test_result_graphs.html"
         input_template_path=r"../../app/templates/test_results.html"
@@ -281,8 +267,23 @@ def smonAnalysis( tsvfile, isMain ):
                                 "fig_14": figDict['fig16'],
                                 "fig_15": figDict['fig17'],
                                 "fig_16": figDict['fig18'],
+                                "sec_1_desc": figDict['section_1_desc'],
+                                "sec_2_desc": figDict['section_2_desc'],
+                                "sec_3_desc": figDict['section_3_desc'],
+                                "sec_4_desc": figDict['section_4_desc'],
+                                "sec_5_desc": figDict['section_5_desc'],
+                                "sec_6_desc": figDict['section_6_desc'],
+                                "sec_7_desc": figDict['section_7_desc'],
+                                "sec_8_desc": figDict['section_8_desc'],
+                                "sec_9_desc": figDict['section_9_desc'],
+                                "sec_10_desc": figDict['section_10_desc'],
+                                "sec_11_desc": figDict['section_11_desc'],
+                                "sec_12_desc": figDict['section_12_desc'],
+                                "sec_13_desc": figDict['section_13_desc'],
+                                "sec_14_desc": figDict['section_14_desc'],
+                                "sec_15_desc": figDict['section_15_desc'],
                             }
-
+        startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         with open(output_html_path, "w", encoding="utf-8") as output_file:
             with open(input_template_path) as template_file:
                 j2_template = Template(template_file.read())
@@ -290,6 +291,8 @@ def smonAnalysis( tsvfile, isMain ):
         
         fileUrl = 'file:///'+ os.getcwd() + '/' + output_html_path
         webbrowser.open_new_tab(fileUrl)
+        endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        print(f">>> [Elapsed Time (sec) for opening a html file] { endTime - startTime }")
 
     else:
         return figDict

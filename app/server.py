@@ -71,6 +71,21 @@ def results():
 								fig_14 = GRAPH_HTML['fig16'], # Update Queue Length
 								fig_15 = GRAPH_HTML['fig17'], # Enqueue Queue Length
 								fig_16 = GRAPH_HTML['fig18'], # Number of logins
+                                sec_1_desc = GRAPH_HTML['section_1_desc'],
+                                sec_2_desc = GRAPH_HTML['section_2_desc'],
+                                sec_3_desc = GRAPH_HTML['section_3_desc'],
+                                sec_4_desc = GRAPH_HTML['section_4_desc'],
+                                sec_5_desc = GRAPH_HTML['section_5_desc'],
+                                sec_6_desc = GRAPH_HTML['section_6_desc'],
+                                sec_7_desc = GRAPH_HTML['section_7_desc'],
+                                sec_8_desc = GRAPH_HTML['section_8_desc'],
+                                sec_9_desc = GRAPH_HTML['section_9_desc'],
+                                sec_10_desc = GRAPH_HTML['section_10_desc'],
+                                sec_11_desc = GRAPH_HTML['section_11_desc'],
+                                sec_12_desc = GRAPH_HTML['section_12_desc'],
+                                sec_13_desc = GRAPH_HTML['section_13_desc'],
+                                sec_14_desc = GRAPH_HTML['section_14_desc'],
+                                sec_15_desc = GRAPH_HTML['section_15_desc'],
 							)
 
 # Run the applicaiton ===============================================================

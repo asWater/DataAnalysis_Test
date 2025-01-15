@@ -30,3 +30,42 @@ body {
 .grid .fig_line {
   width: 70%;
 }
+
+details {
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  padding: 0.5em 0.5em 0;
+}
+
+summary {
+  font-weight: bold;
+  margin: -0.5em -0.5em 0;
+  padding: 0.5em;
+  /*font-family: 'Comic Sans MS';*/
+  font-weight: bold;
+  color: #007399;
+}
+
+details[open] {
+  padding: 0.5em;
+}
+
+#graphList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#graphList li {
+  /*margin: 10px;*/
+  border: 2px solid #dfdfdf;
+  border-radius: 10px;
+}
+
+#graphList li.hint {
+  border: 2px dashed #dfdfdf;
+}
+
+#graphList li.active {
+  border: 2px dashed #ff597b;
+}

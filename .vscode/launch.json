@@ -4,17 +4,35 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
-            "name": "Python Debugger: Current File with Arguments",
+            "name": "Server Style (No argument)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+        },
+        {
+            "name": "SMON New Version (w/ args)",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "cwd": "${fileDirname}",
             "args": [
-                "20250109_full_smon.txt"
+                "20250109_0630-0730_smon.txt"
             ]
-        }
+        },
+        {
+            "name": "SMON Old Version (w/ args)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "args": [
+                "PS1_smon.tsv"
+            ]
+        }        
     ]
 }
