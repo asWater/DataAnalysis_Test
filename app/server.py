@@ -2,6 +2,9 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from flask_dropzone import Dropzone
+# For logging of Flask
+import logging
+from logging.handlers import TimedRotatingFileHandler
 
 # My own modules
 #from modules.DataAnalysis import smonAnalysis
@@ -10,8 +13,22 @@ from modules.DataAnalysis_Plotly import smonAnalysis
 # 自身の名称を app という名前でインスタンス化する
 app = Flask( __name__ )
 
+# Constants
 DROP_MAX_FILE_SIZE = 30
+LOG_FIKE = 'logs/app.log'
 
+# Create a timed rotating file handler to manage log files
+handler = TimedRotatingFileHandler( LOG_FIKE, when='D', interval=1, backupCount=7 )
+handler.setLevel( logging.INFO )
+
+# Create a formatter and add it to the handler
+formatter = logging.Formatter( '%(asctime)s - %(levelname)s - %(message)s' )
+handler.setFormatter( formatter )
+
+# Add the handler to the root logger
+logging.getLogger().addHandler( handler )
+
+# Dropzone settings
 # https://flask-dropzone.readthedocs.io/en/latest/configuration.html
 app.config.update(
 	DROPZONE_ALLOWED_FILE_CUSTOM = True,
@@ -42,6 +59,7 @@ def entry_page() -> 'html':
 @app.route('/uploads', methods=['GET', 'POST'])
 def upload():
 	if request.method == 'POST':
+		app.logger.info( f'>>> Uploaded from {request.remote_addr}' )
 		f = request.files.get('file')
 		global GRAPH_HTML
 		GRAPH_HTML = smonAnalysis( f, False )

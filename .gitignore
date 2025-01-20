@@ -1,3 +1,5 @@
 app/data/*
 !app/data/.gitkeep
 app/modules/*.html
+app/logs/*
+!app/logs/.gitkeep
