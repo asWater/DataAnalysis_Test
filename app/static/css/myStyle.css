@@ -3,6 +3,8 @@ body {
   font-size:        medium;
   margin-top:       5%;
   margin-bottom:    5%;
+  background-color: #242424;
+  color: #868686;
   /*
   margin-left:      10%;
   margin-right:     10%;
@@ -43,7 +45,7 @@ summary {
   padding: 0.5em;
   /*font-family: 'Comic Sans MS';*/
   font-weight: bold;
-  color: #007399;
+  color: #c8c8c8;
 }
 
 details[open] {

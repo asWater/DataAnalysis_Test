@@ -20,7 +20,7 @@
             "console": "integratedTerminal",
             "cwd": "${fileDirname}",
             "args": [
-                "20250109_0630-0730_smon.txt"
+                "20250217_smon.txt"
             ]
         },
         {
@@ -33,6 +33,17 @@
             "args": [
                 "PS1_smon.tsv"
             ]
-        }        
+        },
+        {
+            "name": "HANA Resource (w/ args)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "args": [
+                "HANA_CpuMem_D2.txt"
+            ]
+        },        
     ]
 }

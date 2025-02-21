@@ -26,11 +26,15 @@ from datetime import datetime
 import plotly.io as pio
 import mpld3
 
+# Constants
+SMON_1ST_COL_NAME = "Date"
+HANA_RESOURCE_1ST_COL_NAME = "SNAPSHOT_TIME"
+
 global dataFrame
 
 #HTML_TMP = '<img src="data:image/png;base64,{image_bin}">'
 
-def smonAnalysis( tsvfile, isMain ):
+def DataAnalysis( tsvfile, isMain ):
     # Reference of pandas.read_csv: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
     # SMON TSV File: 
     # (First number: 0)
@@ -39,8 +43,17 @@ def smonAnalysis( tsvfile, isMain ):
     # > Total columns number: 31
     # > Data Starts: Row 4
     #df = pd.read_csv(tsvfile, skiprows=1, header=0, usecols=range(1,34), skip_blank_lines=True, sep='\t')
+    # "header" = header row number
+    # "skiprow=1" is necessary to handle old SMON data, because it has a text ("Monitoring Data") at the row 0.
     df = pd.read_csv(tsvfile, skiprows=1, header=0, usecols=lambda c: c is not None, skip_blank_lines=True, sep='\t')
     
+    if df.columns[1] == SMON_1ST_COL_NAME:
+        SMON_Analysis( df, isMain )
+    elif df.columns[1] == HANA_RESOURCE_1ST_COL_NAME:
+        HANA_Analysis( df, isMain )
+
+
+def SMON_Analysis( df, isMain ):
     for i, time in enumerate(df['Time']):
         #df['Time'][i] = datetime.strptime(time, '%H:%M:%S')
         df.loc[i, 'Time'] = datetime.strptime(time, '%H:%M:%S')
@@ -115,7 +128,6 @@ def smonAnalysis( tsvfile, isMain ):
     #cursor.connect( 'add', lambda sel: sel.annotation.set_text( df.loc[ sel.index, ["Time", "CPU Usr", "AS Instance"] ].to_string() ) )
     cursor.connect( 'add', show_annotation )
 
-
     if isMain:
         plt.show()
         plt.close()
@@ -123,6 +135,10 @@ def smonAnalysis( tsvfile, isMain ):
         graphImage = img2html( fig )
         plt.close()
         return graphImage
+
+
+def HANA_Analysis( df, isMain ):
+    print('TEST')
 
 
 def img2html( fig ):
@@ -157,7 +173,7 @@ if __name__ == '__main__':
         anaFile = '../../app/data/' + argvs[1]
 
         if os.path.isfile( anaFile ):
-            smonAnalysis( anaFile, True )
+            DataAnalysis( anaFile, True )
         else:
             print ('!!! Could not find the file: ' + anaFile )
             sys.exit()
