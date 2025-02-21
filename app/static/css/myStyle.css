@@ -71,3 +71,8 @@ details[open] {
 #graphList li.active {
   border: 2px dashed #ff597b;
 }
+
+#myDropzone{
+  background-color: #555555;
+  color: #c8c8c8;
+}
