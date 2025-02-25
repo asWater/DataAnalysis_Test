@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+    <h1>{{ title }}</h1>
+    <ul id="graphList">
+        <li>
+            <details open>
+                <summary>{{ sec_1_desc }}</summary>
+                <div>{{ fig_1 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_2_desc }}</summary>
+                <div>{{ fig_2 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_3_desc }}</summary>
+                <div>{{ fig_3 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_4_desc }}</summary>
+                <div>{{ fig_4 | safe }}</div>
+            </details>
+        </li>
+        <li>
+            <details open>
+                <summary>{{ sec_5_desc }}</summary>
+                <div>{{ fig_5 | safe }}</div>
+            </details>
+        </li>
+    </ul>
+
+    <br>
+    <h1>End of analysis</h1>
+    <!-- The following script must be inside of BODY besides the last part (here), otherwise the following error is issued -->
+    <!-- ERROR: Uncaught TypeError: Cannot read properties of null (reading 'getElementsByTagName') -->
+    <!-- In FLASK, javascript file must be inside "static" -->
+    <script src="static/js/DragHandler.js"></script>
+{% endblock %}

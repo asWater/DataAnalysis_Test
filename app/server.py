@@ -38,14 +38,17 @@ app.config.update(
 	DROPZONE_REDIRECT_VIEW = 'results',
 	DROPZONE_MAX_FILE_SIZE = DROP_MAX_FILE_SIZE, # MB
 	DROPZONE_MAX_FILES = 1,
-	DROPZONE_DEFAULT_MESSAGE = f"Drop an output file of /SDF/SMON (Local file > Text with Tab)<br>Max File Size = {DROP_MAX_FILE_SIZE} MB.",
+	DROPZONE_DEFAULT_MESSAGE = f"Drop an output file of /SDF/SMON (Local file > Text with Tab)<br>or<br>The output of SQL: HANA_Resources_CPUAndMemory (Local file > Text with Tab)<br><br><br>File must be separated by TAB (TSV file). File Extention is OK even if it is 'txt'.<br><br><br>Max File Size = {DROP_MAX_FILE_SIZE} MB.",
 )
 
 dropzone = Dropzone(app)
 
 #Global Variant
-global GRAPH_HTML
-#GRAPH_HTML = None 
+#global GRAPH_HTML
+SMON_FILE = "SMON"
+HANA_RESOURCE_FILE = "HANA_RESOURCE"
+GRAPH_HTML = {}
+FILE_TYPE = None
 
 # Port number is required to fetch from env variable
 # http://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html#PORT
@@ -56,7 +59,7 @@ cf_port = os.getenv("PORT")
 @app.route('/index')
 def entry_page() -> 'html':
 	return render_template('index.html',
-							the_title='Drag and Drop file to be analyzed')
+							page_title='SMON Data Graph Creator')
 
 # Route /upload ===============================================================
 @app.route('/uploads', methods=['GET', 'POST'])
@@ -65,25 +68,17 @@ def upload():
 		app.logger.info( f'>>> Uploaded from {request.remote_addr}' )
 		f = request.files.get('file')
 
-		#fileType = data_ana.DataFileCheck( f )
-		fileType = "SMON"
-
-		global GRAPH_HTML
-		if fileType == "SMON":
-			GRAPH_HTML = data_ana.SMON_Analysis( f, False )
-		elif fileType == "HANA_RESOURCE":
-			GRAPH_HTML = data_ana.HANA_Resource_Analysis( f, False )
-		else:
-			GRAPH_HTML = None
+		global FILE_TYPE, GRAPH_HTML
+		FILE_TYPE, GRAPH_HTML = data_ana.AnalyzeFile( f, False )
 		
-		return 'File is uploaded'
+	return 'File is uploaded'
 
 
 # Route /results ===============================================================
 @app.route('/results')
 
 def results():
-	global GRAPH_HTML
+	global FILE_TYPE, GRAPH_HTML
 
 	'''
 	figDict_01 = {
@@ -107,58 +102,72 @@ def results():
 							figDict_02 = figDict_02
 					)
 	'''
-	return render_template( 'results.html',
-							sec_1_desc = GRAPH_HTML['section_1_desc'],
-							fig_1_1 = GRAPH_HTML['fig1'], # CPU User, Box chart
-							fig_1_2 = GRAPH_HTML['fig2'], # CPU User, Line chart
-							fig_2_1 = GRAPH_HTML['fig3'], # CPU System, Box chart
-							fig_2_2 = GRAPH_HTML['fig4'], # CPU System, Line chart
-							
-							sec_2_desc = GRAPH_HTML['section_2_desc'],
-							fig_3 = GRAPH_HTML['fig5'], # CPU User + System
-							
-							sec_3_desc = GRAPH_HTML['section_3_desc'],
-							fig_4 = GRAPH_HTML['fig6'], # Number of Active Work Processes
-							
-							sec_4_desc = GRAPH_HTML['section_4_desc'],
-							fig_5 = GRAPH_HTML['fig7'], # Number of Active Dialog WPs
-							
-							sec_5_desc = GRAPH_HTML['section_5_desc'],
-							fig_6 = GRAPH_HTML['fig8'], # Free DIA WPs for RFCs with normal prio
-							
-							sec_6_desc = GRAPH_HTML['section_6_desc'],
-							fig_7 = GRAPH_HTML['fig9'], # Free DIA WPs for RFC with low priority
-							
-							sec_7_desc = GRAPH_HTML['section_7_desc'],
-							fig_8 = GRAPH_HTML['fig10'], # Free Memory (MB)
-							
-							sec_8_desc = GRAPH_HTML['section_8_desc'],
-							fig_9 = GRAPH_HTML['fig11'], # Allocated Extended Menmory in MB
-							
-							sec_9_desc = GRAPH_HTML['section_9_desc'],
-							fig_10 = GRAPH_HTML['fig12'], # Attached Extended Memory in MB
-							
-							sec_10_desc = GRAPH_HTML['section_10_desc'],
-							fig_11 = GRAPH_HTML['fig13'], # Heap Memory in MB
-							
-							sec_11_desc = GRAPH_HTML['section_11_desc'],
-							fig_12 = GRAPH_HTML['fig14'], # Paging Memory (KB)
-							
-							sec_12_desc = GRAPH_HTML['section_12_desc'],
-							fig_13 = GRAPH_HTML['fig15'], # Private Modes
-							
-							sec_13_desc = GRAPH_HTML['section_13_desc'],
-							fig_14 = GRAPH_HTML['fig16'], # Dialog Queue Length
-							
-							sec_14_desc = GRAPH_HTML['section_14_desc'],
-							fig_15 = GRAPH_HTML['fig17'], # Update Queue Length
-							
-							sec_15_desc = GRAPH_HTML['section_15_desc'],
-							fig_16 = GRAPH_HTML['fig18'], # Enqueue Queue Length
-							
-							sec_16_desc = GRAPH_HTML['section_16_desc'],
-							fig_17 = GRAPH_HTML['fig19'], # Number of logins
-					)
+	if FILE_TYPE == SMON_FILE:
+		return render_template( 'results_SMON.html',
+								title = GRAPH_HTML["title"],
+
+								sec_1_desc = GRAPH_HTML['section_1_desc'],
+								fig_1_1 = GRAPH_HTML['fig1'], # CPU User, Box chart
+								fig_1_2 = GRAPH_HTML['fig2'], # CPU User, Line chart
+								fig_2_1 = GRAPH_HTML['fig3'], # CPU System, Box chart
+								fig_2_2 = GRAPH_HTML['fig4'], # CPU System, Line chart
+								
+								sec_2_desc = GRAPH_HTML['section_2_desc'],
+								fig_3 = GRAPH_HTML['fig5'], # CPU User + System
+								
+								sec_3_desc = GRAPH_HTML['section_3_desc'],
+								fig_4 = GRAPH_HTML['fig6'], # Number of Active Work Processes
+								
+								sec_4_desc = GRAPH_HTML['section_4_desc'],
+								fig_5 = GRAPH_HTML['fig7'], # Number of Active Dialog WPs
+								
+								sec_5_desc = GRAPH_HTML['section_5_desc'],
+								fig_6 = GRAPH_HTML['fig8'], # Free DIA WPs for RFCs with normal prio
+								
+								sec_6_desc = GRAPH_HTML['section_6_desc'],
+								fig_7 = GRAPH_HTML['fig9'], # Free DIA WPs for RFC with low priority
+								
+								sec_7_desc = GRAPH_HTML['section_7_desc'],
+								fig_8 = GRAPH_HTML['fig10'], # Free Memory (MB)
+								
+								sec_8_desc = GRAPH_HTML['section_8_desc'],
+								fig_9 = GRAPH_HTML['fig11'], # Allocated Extended Menmory in MB
+								
+								sec_9_desc = GRAPH_HTML['section_9_desc'],
+								fig_10 = GRAPH_HTML['fig12'], # Attached Extended Memory in MB
+								
+								sec_10_desc = GRAPH_HTML['section_10_desc'],
+								fig_11 = GRAPH_HTML['fig13'], # Heap Memory in MB
+								
+								sec_11_desc = GRAPH_HTML['section_11_desc'],
+								fig_12 = GRAPH_HTML['fig14'], # Paging Memory (KB)
+								
+								sec_12_desc = GRAPH_HTML['section_12_desc'],
+								fig_13 = GRAPH_HTML['fig15'], # Private Modes
+								
+								sec_13_desc = GRAPH_HTML['section_13_desc'],
+								fig_14 = GRAPH_HTML['fig16'], # Dialog Queue Length
+								
+								sec_14_desc = GRAPH_HTML['section_14_desc'],
+								fig_15 = GRAPH_HTML['fig17'], # Update Queue Length
+								
+								sec_15_desc = GRAPH_HTML['section_15_desc'],
+								fig_16 = GRAPH_HTML['fig18'], # Enqueue Queue Length
+								
+								sec_16_desc = GRAPH_HTML['section_16_desc'],
+								fig_17 = GRAPH_HTML['fig19'], # Number of logins
+						)
+	
+	elif FILE_TYPE == HANA_RESOURCE_FILE:
+		return render_template( 'results_HANA.html', 
+						 		title=GRAPH_HTML["title"],
+								sec_1_desc = GRAPH_HTML['section_1_desc'],
+								fig_1 = GRAPH_HTML['fig1'], # CPU User + System
+								sec_2_desc = GRAPH_HTML['section_2_desc'],
+								fig_2 = GRAPH_HTML['fig2'], # HANA Memory
+				)
+	else:
+		print("File type is unknown!")
 
 # Run the applicaiton ===============================================================
 if __name__ == '__main__':

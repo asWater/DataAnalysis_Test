@@ -22,37 +22,16 @@ CPU_SYS_USR_COL_NAME = 'CPU_Sys_User'
 GRAPH_LABEL_COLOR = "rgba(200,200,200,1)"
 GRAPH_PAPER_BGCOLOR = "rgba(36,36,36,1)"
 GRAPH_PLOT_BGCOLOR = "rgba(197,212,235,1)"
+SMON_FILE = "SMON"
+HANA_RESOURCE_FILE = "HANA_RESOURCE"
 
 #HTML_TMP = '<img src="data:image/png;base64,{image_bin}">'
 
 
 class SmonDataAnalysis():
 
-    def __init__( self, tsvfile ):
-        # Reference of pandas.read_csv: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
-        # SMON TSV File: 
-        # (First number: 0)
-        # > Column Titles: Row 2 (S/4 ver 1808, BASIS 753), Row 1 (S/4 ver 2023, BASIS 758)
-        # > Column Starts: Col 1
-        # > Total columns number: 31
-        # > Data Starts: Row 4
-        #df = pd.read_csv(tsvfile, skiprows=1, header=0, usecols=range(1,34), skip_blank_lines=True, sep='\t')
-        # "header" = header row number
-        # "skiprow=1" is necessary to handle old SMON data, because it has a text ("Monitoring Data") at the row 0.
-        startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        self.df = pd.read_csv(
-                tsvfile, 
-                skiprows=1, 
-                header=0, 
-                usecols=lambda c: c is not None, 
-                skip_blank_lines=True, 
-                sep='\t',
-                parse_dates={'DateTime': ['Date', 'Time']},
-                keep_date_col=True,
-            )
-        endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        print(f">>> [Elapsed Time (sec) for reading a tsv file] { endTime - startTime }")
-
+    def __init__( self, df ):
+        self.df = df
         #------------------------------------
         # Pre processing for the data frame
         #------------------------------------
@@ -62,6 +41,9 @@ class SmonDataAnalysis():
         # Changing the duplicated column name (Last column name. i.e. "Time")
         self.df.columns = [*self.df.columns[:-1], 'Time2']
 
+        # Creating a column "DateTime" by cocatinating columns "Date" and "Time"
+        self.df["DateTime"] = self.df["Date"] + " " + self.df["Time"]
+        self.df["DateTime"] = pd.to_datetime(self.df["DateTime"], format='%Y/%m/%d %H:%M:%S')
         # Converting Datetime (datetime64) to String.
         # Otherwise the process of rendering graph (to_html) takes very long time (aprox 10x times)
         self.df['DateTime'] = self.df['DateTime'].dt.strftime('%Y/%m/%d %H:%M:%S')
@@ -136,14 +118,56 @@ class SmonDataAnalysis():
         return fig
 
 
+class HANA_ResourceAnalysis():
+    def __init__( self, df ):
+        self.df = df
 
-def SMON_Analysis( tsvfile, isMain ):
+        # Eliminating preceding and scceeding spaces from clumn names
+        self.df.rename( columns=lambda c: c.strip(), inplace=True )
+
+        #self.df["SNAPSHOT_TIME"] = pd.to_datetime(self.df["SNAPSHOT_TIME"], format='%Y/%m/%d %H:%M:%S')
+        #self.df["SNAPSHOT_TIME"] = self.df["SNAPSHOT_TIME"].dt.strftime('%Y/%m/%d %H:%M:%S')
+        #self.df["SNAPSHOT_TIME"] = self.df["SNAPSHOT_TIME"].astype(str)
+        
+        # Sort ascending by SNAPSHOT_TIME
+        self.df.sort_values("SNAPSHOT_TIME", ascending=True, inplace=True)
+
+        # Getting Dataframe Information After Pre-Processing to Dataframe
+        print(self.df.head())
+        print(self.df.info())
+        #print(df.describe())
+
+    def create_line_fig( self, options ):
+        fig = px.line(self.df, x=options['x_col'], y=options['y_col'], color=options['color'], render_mode="svg")
+
+        fig.update_layout(
+            title=dict(
+                #text=options['desc'],
+                font=dict(
+                    size=15,
+                    color="grey",
+                )
+            ),
+            yaxis_range=options['y_range'],
+            yaxis_categoryorder=options['y_categoryOrder'],
+            xaxis_categoryorder='array',
+            xaxis_categoryarray=self.df[options['x_col']],
+            xaxis_dtick=350,
+            paper_bgcolor=GRAPH_PAPER_BGCOLOR,
+            plot_bgcolor=GRAPH_PLOT_BGCOLOR,
+            font_color=GRAPH_LABEL_COLOR,
+        )
+
+        return fig
+
+
+def SMON_Analysis( df, isMain ):
 
     #fig.show()
     #fig1.write_html('first_figure.html', auto_open=True)
     #fig2.write_html('first_figure.html', auto_open=True)
 
-    ana = SmonDataAnalysis( tsvfile )
+    ana = SmonDataAnalysis( df )
 
     graphOptions = {}
     # Setting graph data to a dictionary
@@ -154,6 +178,7 @@ def SMON_Analysis( tsvfile, isMain ):
 
     startTime = time.time() #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # Creating graphs
+    figDict["title"] = "SMON Data Analysis"
     # fig1
     figDict['section_1_desc'] = "CPU Utilization"
     fig = ana.create_box_fig( 'AS Instance', 'CPU Usr', 'CPU Utilization by Users' )
@@ -181,12 +206,15 @@ def SMON_Analysis( tsvfile, isMain ):
     fig = ana.create_line_fig( graphOptions )
     figDict['fig4'] = fig.to_html( full_html=False )
 
+    # fig5
+    graphOptions['y_col'] = CPU_SYS_USR_COL_NAME
+    graphOptions['desc'] = "CPU Utilization (User + System)"
+    figDict['section_2_desc'] = "CPU Utilization (User + System)"
+    fig = ana.create_line_fig( graphOptions )
+    figDict['fig5'] = fig.to_html( full_html=False )
+
     smonDataInfo = {
         "smonCols": [
-            {
-                "col_name": CPU_SYS_USR_COL_NAME,
-                "col_desc": "CPU Utilization (User + System)"
-            },
             {
                 "col_name": "Act. WPs",
                 "col_desc": "Number of Active Work Processes"
@@ -250,17 +278,19 @@ def SMON_Analysis( tsvfile, isMain ):
 
     # Creating other graphs
     for i, key in enumerate(smonDataInfo['smonCols']):
+        figIdxPlus = 6
+        secIdxPlus = 3
         # New version has 34 columns and the column "Paging Mem" is existing as far as I know.  
         # Column "Pagin Mem" is only existing in the new version (at least since ST-PI 740 SP25)  
         if not isNewVersion and key['col_name'] == COL_NAME_PAGINGMEM:
-            figDict[f'fig{i+5}'] = None
-            figDict[f'section_{i+2}_desc'] = None
+            figDict[f'fig{i + figIdxPlus}'] = None
+            figDict[f'section_{i + secIdxPlus}_desc'] = None
         else:
             graphOptions['y_col'] = key['col_name']
             graphOptions['desc'] = key['col_desc']
             fig = ana.create_line_fig( graphOptions )
-            figDict[f'fig{i+5}'] = fig.to_html( full_html=False )
-            figDict[f'section_{i+2}_desc'] = key['col_desc']
+            figDict[f'fig{i + figIdxPlus}'] = fig.to_html( full_html=False )
+            figDict[f'section_{i + secIdxPlus}_desc'] = key['col_desc']
                 
 
     endTime = time.time() #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -339,8 +369,35 @@ def SMON_Analysis( tsvfile, isMain ):
         return figDict
 
 
-def HANA_Resource_Analysis( tsvfile, isMain ):
-    figDict = "Not yet implemented for HANA Resource Analysis"
+def HANA_Resource_Analysis( df, isMain ):
+    ana = HANA_ResourceAnalysis( df )
+    figDict = {}
+    figDict["title"] = "HANA Resource Analysis (!!! In Construction !!!)"
+
+    graphOptions = {
+        "x_col": "SNAPSHOT_TIME",
+        "y_col": "CPU_PCT",
+        "y_range": [0, 100],
+        "y_categoryOrder": "category ascending",
+        "color": None,
+        "desc": "CPU usage (%, user + system)" 
+    } 
+
+    # fig1
+    figDict['section_1_desc'] = "HANA CPU Utilization (System + User)"
+    fig = ana.create_line_fig( graphOptions )
+    figDict['fig1'] = fig.to_html( full_html=False )
+
+    graphOptions['y_range'] = None
+    #graphOptions["color"] = ""
+    # fig2
+    graphOptions['y_col'] = ["ALLOC_LIM_GB", "HANA_USED_GB"]
+    graphOptions['desc'] = "HANA Memory"
+    figDict['section_2_desc'] = "HANA Memory"
+    fig = ana.create_line_fig( graphOptions )
+    figDict['fig2'] = fig.to_html( full_html=False )
+    
+
     if isMain is True:
         print(figDict)
     else:
@@ -348,17 +405,42 @@ def HANA_Resource_Analysis( tsvfile, isMain ):
 
 
 def DataFileCheck( anaFile ):
+    # Reference of pandas.read_csv: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+    # SMON TSV File: 
+    # (First number: 0)
+    # > Column Titles: Row 2 (S/4 ver 1808, BASIS 753), Row 1 (S/4 ver 2023, BASIS 758)
+    # > Column Starts: Col 1
+    # > Total columns number: 31
+    # > Data Starts: Row 4
+    #df = pd.read_csv(tsvfile, skiprows=1, header=0, usecols=range(1,34), skip_blank_lines=True, sep='\t')
+    # "header" = header row number
+    # "skiprow=1" is necessary to handle old SMON data, because it has a text ("Monitoring Data") at the row 0.
+
     # "header" = header row number
     # "skiprow=1" is necessary to handle old SMON data, because it has a text ("Monitoring Data") at the row 0.
     df = pd.read_csv(anaFile, skiprows=1, header=0, usecols=lambda c: c is not None, skip_blank_lines=True, sep='\t')
 
     if df.columns[1] == SMON_1ST_COL_NAME:
-        dataFileType = "SMON"
+        dataFileType = SMON_FILE
     elif df.columns[1] == HANA_RESOURCE_1ST_COL_NAME:
-        dataFileType = "HANA_RESOURCE"
+        dataFileType = HANA_RESOURCE_FILE
     
-    return dataFileType
+    return dataFileType, df
 
+
+def AnalyzeFile( tsvfile, isMain ):
+    fileType, df = DataFileCheck( tsvfile )
+    
+    print( f">>> File Type is {fileType}")
+
+    if fileType == SMON_FILE:
+        figDict = SMON_Analysis( df, False )
+    elif fileType == HANA_RESOURCE_FILE:
+        figDict = HANA_Resource_Analysis( df, False )
+    else:
+        figDict = None
+    
+    return fileType, figDict
 
 
 #=============================================================================================================
