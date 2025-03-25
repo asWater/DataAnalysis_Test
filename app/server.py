@@ -167,7 +167,7 @@ def results():
 								fig_2 = GRAPH_HTML['fig2'], # HANA Memory
 				)
 	else:
-		print("File type is unknown!")
+		return "Uploaded file type is unknown!<br>File must be TSV (Tab Separated Value) file.<br>Allowed file extentions are .tsv or txt."
 
 # Run the applicaiton ===============================================================
 if __name__ == '__main__':
