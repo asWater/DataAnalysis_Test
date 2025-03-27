@@ -68,6 +68,8 @@ def upload():
 		app.logger.info( f'>>> Uploaded from {request.remote_addr}' )
 		f = request.files.get('file')
 
+		# In the data analysis procedure, it is necessary to open the file only once.
+		# otherwise, it will be redirected to "results" witout waiting for the return.
 		global FILE_TYPE, GRAPH_HTML
 		FILE_TYPE, GRAPH_HTML = data_ana.AnalyzeFile( f, False )
 		

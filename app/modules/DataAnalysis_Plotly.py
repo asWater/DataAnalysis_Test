@@ -418,6 +418,10 @@ def DataFileCheck( anaFile ):
 
     # "header" = header row number
     # "skiprow=1" is necessary to handle old SMON data, because it has a text ("Monitoring Data") at the row 0.
+
+    # It is necessary to open the file only once.
+	# Otherwise it will be redirected to "results" witout waiting for the return,
+    # that's why I am getting the "df" as a return and handed it over to other procedures.
     df = pd.read_csv(anaFile, skiprows=1, header=0, usecols=lambda c: c is not None, skip_blank_lines=True, sep='\t')
 
     if df.columns[1] == SMON_1ST_COL_NAME:
@@ -429,6 +433,9 @@ def DataFileCheck( anaFile ):
 
 
 def AnalyzeFile( tsvfile, isMain ):
+    # It is necessary to open the file only once.
+	# Otherwise it will be redirected to "results" witout waiting for the return,
+    # that's why I am getting the "df" as a return and handed it over to other procedures.
     fileType, df = DataFileCheck( tsvfile )
     
     print( f">>> File Type is {fileType}")
